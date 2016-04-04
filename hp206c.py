@@ -2,8 +2,10 @@ import time
 
 import smbus
 
+from .abcdriver import ABCI2CDriver
 
-class HP206C(object):
+
+class HP206C(ABCI2CDriver):
     """Driver for getting temperature and pressure data from HP206C."""
     address = 0x76
     soft_reset = 0x06
@@ -16,9 +18,21 @@ class HP206C(object):
         4096: 65.6
     }
 
-    def __init__(self, port=1, metric=True):
+    def __init__(self, port=1, oversampling_rate=4096, metric=True):
         self.bus = smbus.SMBus(port)
+        self.oversampling_rate = oversampling_rate
         self.metric = metric
+
+    @property
+    def oversampling_rate(self):
+        return self.__oversampling_rate
+
+    @oversampling_rate.setter
+    def oversampling_rate(self, osr):
+        assert osr in self.conversion_time.keys(), """\
+            '{}' is not a valid OSR value. Choose 128, 256, 512, 1024, \
+            2048, or 4096.""".format(osr)
+        self.__oversampling_rate = osr
 
     def do_reset(self):
         self.bus.write_byte(self.address, self.soft_reset)
