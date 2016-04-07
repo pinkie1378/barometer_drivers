@@ -2,7 +2,7 @@ import time
 
 import smbus
 
-from .abcdriver import ABCI2CDriver
+from .abci2c import ABCI2CDriver
 
 
 class HP206C(ABCI2CDriver):

@@ -1,12 +1,8 @@
-from abc import ABCMeta
-
-
 BITS_IN_BYTE = 8
 
 
 class ABCI2CDriver(object):
     """Base class for writing drivers for I2C sensors."""
-    __metaclass__ = ABCMeta
 
     @staticmethod
     def array_block_to_value(data_array):

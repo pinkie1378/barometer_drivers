@@ -1,0 +1,3 @@
+smbus-cffi
+pytest
+tox
