@@ -1,8 +1,22 @@
+import smbus
+
+
 BITS_IN_BYTE = 8
 
 
-class ABCI2CDriver(object):
+class BaseI2CDriver(object):
     """Base class for writing drivers for I2C sensors."""
+    def __init__(self, port=1, address):
+        self.bus = smbus.SMBus(port)
+        self.address = address
+
+    def write_byte(self, byte):
+        assert BaseI2CDriver.is_unsigned_byte(i)
+        self.bus.write_byte(self.address, byte)
+
+    @staticmethod
+    def is_unsigned_byte(byte):
+        return 0x00 <= byte <= 0xff
 
     @staticmethod
     def array_block_to_value(data_array):
@@ -11,13 +25,14 @@ class ABCI2CDriver(object):
          measurement in 2's complement format.
         :return int: Signed integer value of :attr:`data_array`.
         """
-        assert not [i for i in data_array if i >= 2**BITS_IN_BYTE]
+        assert not [i for i in data_array
+                    if not BaseI2CDriver.is_unsigned_byte(i)]
         bits = len(data_array) * BITS_IN_BYTE
         value = 0
         for byte in data_array:
             value <<= BITS_IN_BYTE
             value |= byte
-        return ABCI2CDriver.twos_compliment_to_signed_int(value, bits)
+        return BaseI2CDriver.twos_compliment_to_signed_int(value, bits)
 
     @staticmethod
     def twos_compliment_to_signed_int(twos_compliment_value, bits):

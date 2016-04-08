@@ -1,13 +1,10 @@
 import time
 
-import smbus
-
-from .abci2c import ABCI2CDriver
+from .abci2c import BaseI2CDriver
 
 
-class HP206C(ABCI2CDriver):
+class HP206C(BaseI2CDriver):
     """Driver for getting temperature and pressure data from HP206C."""
-    address = 0x76
     soft_reset = 0x06
     conversion_time = {
         128: 2.1,
@@ -19,7 +16,7 @@ class HP206C(ABCI2CDriver):
     }
 
     def __init__(self, port=1, oversampling_rate=4096, metric=True):
-        self.bus = smbus.SMBus(port)
+        super(BaseI2CDriver, self).__init__(port, address=0x76)
         self.oversampling_rate = oversampling_rate
         self.metric = metric
 
