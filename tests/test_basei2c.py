@@ -1,6 +1,6 @@
 import pytest
 
-from drivers.abci2c import BaseI2CDriver
+from drivers.basei2c import BaseI2CDriver
 
 
 @pytest.mark.parametrize('byte_array, int_value', [

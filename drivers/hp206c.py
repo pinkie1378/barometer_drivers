@@ -1,6 +1,6 @@
 import time
 
-from .abci2c import BaseI2CDriver
+from .basei2c import BaseI2CDriver
 
 
 class HP206C(BaseI2CDriver):
