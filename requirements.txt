@@ -1,3 +1,5 @@
 smbus-cffi
 pytest
 tox
+jedi
+pep8
