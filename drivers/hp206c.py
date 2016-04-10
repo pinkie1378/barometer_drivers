@@ -11,8 +11,8 @@ class HP206C(BaseI2CDriver):
         'soft_reset'        : 0x06,
         'adc_pressure_temp' : partial(BaseI2CDriver.do_bitwise_or, 0x40, 0x00),
         'adc_temp'          : partial(BaseI2CDriver.do_bitwise_or, 0x40, 0x02),
-        'read_pressure_temp': 0x10,
-        'read_altitude_temp': 0x11,
+        'read_temp_pressure': 0x10,
+        'read_temp_altitude': 0x11,
         'read_pressure'     : 0x30,
         'read_altitude'     : 0x31,
         'read_temp'         : 0x32,
@@ -44,7 +44,7 @@ class HP206C(BaseI2CDriver):
     }
 
     def __init__(self, port=1, oversampling_rate=4096, metric=True):
-        super(BaseI2CDriver, self).__init__(port, address=0x76)
+        super(HP206C, self).__init__(port=port, address=0x76)
         self.oversampling_rate = oversampling_rate
         self.metric = metric
 
@@ -78,9 +78,46 @@ class HP206C(BaseI2CDriver):
         else:
             self.write_byte(self.commands['adc_pressure_temp'](osr))
 
-    def is_ready():
-        """Check DEV_RDY bit (6) on the interrupt status (INT_SRC) register."""
+    def is_ready(self):
+        """Check DEV_RDY bit (6) on the interrupt status (INT_SRC) register.
+
+        :return bool: Device is available for data access.
+        """
         register = self.registers['interrupt_status']
         command = self.commands['read_register'](register)
         status = self.read_byte_data(command)
         return BaseI2CDriver.is_bit_set(status, 6)
+
+    def wait_until_ready(self, delay=0.0, poll_rate=0.01):
+        """
+        :param float delay: Initial blocking period in msec.
+        :param float poll_rate: Subsequent device polling rate in msec.
+        """
+        time.sleep(delay)
+        while not self.is_ready():
+            print('Not ready yet')
+            time.sleep(poll_rate)
+
+    def read_temperature(self):
+        """
+        :return float: Temperature in degrees C.
+        """
+        delay = self.osr_conversion[self.oversampling_rate]['msec'] / 1000
+        self.send_adc_command(temperature_only=True)
+        self.wait_until_ready(delay=delay)
+        command = self.commands['read_temp']
+        array = self.read_block_data(command, 3)
+        return BaseI2CDriver.array_block_to_value(array) / 100.0
+
+    def read_temperature_and_pressure(self):
+        """
+        :return tuple: Temperature in degrees C, pressure in mBar.
+        """
+        delay = self.osr_conversion[self.oversampling_rate]['msec'] / 500
+        self.send_adc_command()
+        self.wait_until_ready(delay=delay)
+        command = self.commands['read_temp_pressure']
+        array = self.read_block_data(command, 6)
+        temperature = BaseI2CDriver.array_block_to_value(array[:3]) / 100.0
+        pressure = BaseI2CDriver.array_block_to_value(array[3:]) / 100.0
+        return temperature, pressure
