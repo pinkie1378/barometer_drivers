@@ -33,3 +33,12 @@ def test_is_unsigned_byte(byte, expected):
 ])
 def test_do_bitwise_or(val1, val2, args, expected):
     assert BaseI2CDriver.do_bitwise_or(val1, val2, *args) == expected
+
+
+@pytest.mark.parametrize('value, index, expected', [
+    (0, 0, False), (1, 0, True), (2, 0, False),
+    (1, 1, False), (2, 1, True), (3, 1, True),
+    (63, 6, False), (64, 6, True), (127, 6, True), (128, 6, False)
+])
+def test_is_bit_set(value, index, expected):
+    assert BaseI2CDriver.is_bit_set(value, index) == expected

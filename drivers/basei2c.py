@@ -14,9 +14,29 @@ class BaseI2CDriver(object):
         self.bus = smbus.SMBus(port)
         self.address = address
 
-    def write_byte(self, byte):
-        assert BaseI2CDriver.is_unsigned_byte(byte)
-        self.bus.write_byte(self.address, byte)
+    def read_byte_data(self, command):
+        """
+        :param int command: Byte to write to I2C device.
+        :return int: Unsigned byte response from :attr:`command`.
+        """
+        assert BaseI2CDriver.is_unsigned_byte(command)
+        return self.bus.read_byte_data(self.address, command)
+
+    def read_block_data(self, command, length):
+        """
+        :param int command: Byte to write to I2C device.
+        :param length: Number of bytes to read from I2C device.
+        :return list: :attr:`length` byte sized int elements from I2C device.
+        """
+        assert BaseI2CDriver.is_unsigned_byte(command)
+        return self.bus.read_i2c_block_data(self.address, command, length)
+
+    def write_byte(self, command):
+        """
+        :param int command: Byte to write to I2C device.
+        """
+        assert BaseI2CDriver.is_unsigned_byte(command)
+        self.bus.write_byte(self.address, command)
 
     @staticmethod
     def do_bitwise_or(val1, val2, *args):
@@ -32,10 +52,23 @@ class BaseI2CDriver(object):
     @staticmethod
     def is_unsigned_byte(byte):
         """
-        :param byte: Value to test.
+        :param int byte: Value to test.
         :return bool: True if :attr:`byte` contains 8 bits and is non-negative.
         """
         return 0x00 <= byte <= 0xff
+
+    @staticmethod
+    def is_bit_set(value, index):
+        """Check if a bit is set in positive integers.
+
+        :param int value: Value to test.
+        :param int index: 0-based index of bit in :attr:`value` to check.
+        :return bool: True if bit in :attr:`value` at :attr:`index` is set.
+        """
+        assert isinstance(value, int) and value >= 0
+        mask = 1 << index
+        bit = (value & mask) >> index
+        return bit == 1
 
     @staticmethod
     def array_block_to_value(data_array):
@@ -60,6 +93,6 @@ class BaseI2CDriver(object):
         :param int bits: Number of bits in :attr:`twos_compliment_value`
         :return int: Signed version of :attr:`twos_compliment_value`
         """
-        if (twos_compliment_value & (1 << (bits - 1))) != 0:
+        if BaseI2CDriver.is_bit_set(twos_compliment_value, bits - 1):
             twos_compliment_value -= (1 << bits)
         return twos_compliment_value
