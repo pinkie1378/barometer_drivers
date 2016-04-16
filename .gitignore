@@ -2,3 +2,4 @@
 .tox
 .cache
 *.egg-info
+venv
