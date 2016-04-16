@@ -43,10 +43,9 @@ class HP206C(BaseI2CDriver):
         4096: {'command': 0x00, 'msec': 65.6}
     }
 
-    def __init__(self, port=1, oversampling_rate=4096, metric=True):
+    def __init__(self, port=1, oversampling_rate=4096):
         super(HP206C, self).__init__(port=port, address=0x76)
         self.oversampling_rate = oversampling_rate
-        self.metric = metric
 
     @property
     def oversampling_rate(self):
@@ -90,8 +89,8 @@ class HP206C(BaseI2CDriver):
 
     def wait_until_ready(self, delay=0.0, poll_rate=0.01):
         """
-        :param float delay: Initial blocking period in msec.
-        :param float poll_rate: Subsequent device polling rate in msec.
+        :param float delay: Initial blocking period in sec.
+        :param float poll_rate: Subsequent device polling rate in sec.
         """
         time.sleep(delay)
         while not self.is_ready():
