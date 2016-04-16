@@ -9,6 +9,6 @@ with open(os.path.join(this_dir, 'requirements.txt')) as reqs_fd:
 setup(
     name='barometerdrivers',
     version='0.1',
-    packages=find_packages('drivers'),
+    packages=find_packages('barometerdrivers'),
     install_requires=REQUIREMENTS
 )
