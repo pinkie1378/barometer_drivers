@@ -109,6 +109,17 @@ class HP206C(BaseI2CDriver):
         array = self.read_block_data(command, 3)
         return BaseI2CDriver.array_block_to_value(array) / 100.0
 
+    def read_pressure(self):
+        """
+        :return float: Pressure in mBar
+        """
+        delay = self.osr_conversion[self.oversampling_rate]['msec'] / 500
+        self.send_adc_command()
+        self.wait_until_ready(delay=delay)
+        command = self.commands['read_pressure']
+        array = self.read_block_data(command, 3)
+        return BaseI2CDriver.array_block_to_value(array) / 100.0
+
     def read_temperature_and_pressure(self):
         """
         :return tuple: Temperature in degrees C, pressure in mBar.
