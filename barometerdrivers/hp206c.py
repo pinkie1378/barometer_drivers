@@ -1,10 +1,10 @@
 from functools import partial
 import time
 
-from .basei2c import BaseI2CDriver
+from .abstractbarometer import AbstractBarometer
 
 
-class HP206C(BaseI2CDriver):
+class HP206C(AbstractBarometer):
     """Driver for getting temperature and pressure data from HP206C."""
 
     commands = {
@@ -43,20 +43,8 @@ class HP206C(BaseI2CDriver):
         4096: {'command': 0x00, 'msec': 65.6}
     }
 
-    def __init__(self, port=1, oversampling_rate=4096):
-        super(HP206C, self).__init__(port=port, address=0x76)
-        self.oversampling_rate = oversampling_rate
-
-    @property
-    def oversampling_rate(self):
-        return self.__osr
-
-    @oversampling_rate.setter
-    def oversampling_rate(self, osr):
-        assert osr in self.osr_conversion.keys(), """\
-            '{}' is not a valid OSR value. Choose 128, 256, 512, 1024, \
-            2048, or 4096.""".format(osr)
-        self.__osr = osr
+    def __init__(self, oversampling_rate=4096, port=1):
+        super(HP206C, self).__init__(0x76, oversampling_rate, port)
 
     def send_reset(self):
         """Send soft reset command. Once received and executed, all memory will
@@ -85,7 +73,7 @@ class HP206C(BaseI2CDriver):
         register = self.registers['interrupt_status']
         command = self.commands['read_register'](register)
         status = self.read_byte_data(command)
-        return BaseI2CDriver.is_bit_set(status, 6)
+        return self.is_bit_set(status, 6)
 
     def wait_until_ready(self, delay=0.0, poll_rate=0.01):
         """
@@ -106,7 +94,7 @@ class HP206C(BaseI2CDriver):
         self.wait_until_ready(delay=delay)
         command = self.commands['read_temp']
         array = self.read_block_data(command, 3)
-        return BaseI2CDriver.array_block_to_int(array) / 100.0
+        return self.array_block_to_int(array) / 100.0
 
     def read_pressure(self):
         """
@@ -117,7 +105,7 @@ class HP206C(BaseI2CDriver):
         self.wait_until_ready(delay=delay)
         command = self.commands['read_pressure']
         array = self.read_block_data(command, 3)
-        return BaseI2CDriver.array_block_to_int(array) / 100.0
+        return self.array_block_to_int(array) / 100.0
 
     def read_temperature_and_pressure(self):
         """
@@ -128,6 +116,6 @@ class HP206C(BaseI2CDriver):
         self.wait_until_ready(delay=delay)
         command = self.commands['read_temp_pressure']
         array = self.read_block_data(command, 6)
-        temperature = BaseI2CDriver.array_block_to_int(array[:3]) / 100.0
-        pressure = BaseI2CDriver.array_block_to_int(array[3:]) / 100.0
+        temperature = self.array_block_to_int(array[:3]) / 100.0
+        pressure = self.array_block_to_int(array[3:]) / 100.0
         return temperature, pressure
