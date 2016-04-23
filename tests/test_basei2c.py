@@ -5,11 +5,20 @@ from barometerdrivers.basei2c import BaseI2CDriver
 
 @pytest.mark.parametrize('byte_array, expected', [
     ([0x00, 0x0a, 0x5c], 2652),
+    ([0xff, 0xfc, 0x02], 16776194),
+    ([0x01, 0x8a, 0x9e], 101022)
+])
+def test_array_block_to_unsigned_int(byte_array, expected):
+    assert BaseI2CDriver.array_block_to_unsigned_int(byte_array) == expected
+
+
+@pytest.mark.parametrize('byte_array, expected', [
+    ([0x00, 0x0a, 0x5c], 2652),
     ([0xff, 0xfc, 0x02], -1022),
     ([0x01, 0x8a, 0x9e], 101022)
 ])
-def test_array_block_to_value(byte_array, expected):
-    assert BaseI2CDriver.array_block_to_value(byte_array) == expected
+def test_array_block_to_int(byte_array, expected):
+    assert BaseI2CDriver.array_block_to_int(byte_array) == expected
 
 
 @pytest.mark.parametrize('twos_compliment, bits, expected', [

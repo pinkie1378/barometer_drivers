@@ -106,7 +106,7 @@ class HP206C(BaseI2CDriver):
         self.wait_until_ready(delay=delay)
         command = self.commands['read_temp']
         array = self.read_block_data(command, 3)
-        return BaseI2CDriver.array_block_to_value(array) / 100.0
+        return BaseI2CDriver.array_block_to_int(array) / 100.0
 
     def read_pressure(self):
         """
@@ -117,7 +117,7 @@ class HP206C(BaseI2CDriver):
         self.wait_until_ready(delay=delay)
         command = self.commands['read_pressure']
         array = self.read_block_data(command, 3)
-        return BaseI2CDriver.array_block_to_value(array) / 100.0
+        return BaseI2CDriver.array_block_to_int(array) / 100.0
 
     def read_temperature_and_pressure(self):
         """
@@ -128,6 +128,6 @@ class HP206C(BaseI2CDriver):
         self.wait_until_ready(delay=delay)
         command = self.commands['read_temp_pressure']
         array = self.read_block_data(command, 6)
-        temperature = BaseI2CDriver.array_block_to_value(array[:3]) / 100.0
-        pressure = BaseI2CDriver.array_block_to_value(array[3:]) / 100.0
+        temperature = BaseI2CDriver.array_block_to_int(array[:3]) / 100.0
+        pressure = BaseI2CDriver.array_block_to_int(array[3:]) / 100.0
         return temperature, pressure
