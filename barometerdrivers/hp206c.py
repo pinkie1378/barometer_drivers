@@ -1,7 +1,7 @@
 from functools import partial
 import time
 
-from .abstractbarometer import BaseBarometer
+from .basebarometer import BaseBarometer
 
 
 class HP206C(BaseBarometer):
