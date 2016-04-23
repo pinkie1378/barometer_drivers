@@ -71,18 +71,27 @@ class BaseI2CDriver(object):
         return bit == 1
 
     @staticmethod
-    def array_block_to_value(data_array):
+    def array_block_to_unsigned_int(data_array):
         """
-        :param list data_array: List of byte values in 2's complement format.
-        :return int: Signed integer value of :attr:`data_array`.
+        :param list data_array: List of byte values.
+        :return int: Unsigned integer value of :attr:`data_array`.
         """
         assert not [i for i in data_array
                     if not BaseI2CDriver.is_unsigned_byte(i)]
-        bits = len(data_array) * BITS_IN_BYTE
         value = 0
         for byte in data_array:
             value <<= BITS_IN_BYTE
             value |= byte
+        return value
+
+    @staticmethod
+    def array_block_to_int(data_array):
+        """
+        :param list data_array: List of byte values in 2's complement format.
+        :return int: Signed integer value of :attr:`data_array`.
+        """
+        value = BaseI2CDriver.array_block_to_unsigned_int(data_array)
+        bits = len(data_array) * BITS_IN_BYTE
         return BaseI2CDriver.twos_compliment_to_signed_int(value, bits)
 
     @staticmethod
