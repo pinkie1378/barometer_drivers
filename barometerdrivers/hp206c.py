@@ -1,24 +1,24 @@
 from functools import partial
 import time
 
-from .abstractbarometer import AbstractBarometer
+from .abstractbarometer import BaseBarometer
 
 
-class HP206C(AbstractBarometer):
+class HP206C(BaseBarometer):
     """Driver for getting temperature and pressure data from HP206C."""
 
     commands = {
         'soft_reset'        : 0x06,
-        'adc_pressure_temp' : partial(BaseI2CDriver.do_bitwise_or, 0x40, 0x00),
-        'adc_temp'          : partial(BaseI2CDriver.do_bitwise_or, 0x40, 0x02),
+        'adc_pressure_temp' : partial(BaseBarometer.do_bitwise_or, 0x40, 0x00),
+        'adc_temp'          : partial(BaseBarometer.do_bitwise_or, 0x40, 0x02),
         'read_temp_pressure': 0x10,
         'read_temp_altitude': 0x11,
         'read_pressure'     : 0x30,
         'read_altitude'     : 0x31,
         'read_temp'         : 0x32,
         'analog_calibrate'  : 0x28,
-        'read_register'     : partial(BaseI2CDriver.do_bitwise_or, 0x80),
-        'write_register'    : partial(BaseI2CDriver.do_bitwise_or, 0xc0)
+        'read_register'     : partial(BaseBarometer.do_bitwise_or, 0x80),
+        'write_register'    : partial(BaseBarometer.do_bitwise_or, 0xc0)
     }
     registers = {
         'altitude_offset'        : (0x00, 0x01),

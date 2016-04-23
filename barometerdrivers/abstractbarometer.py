@@ -3,13 +3,14 @@ from abc import ABCMeta, abstractmethod
 from .basei2c import BaseI2CDriver
 
 
-class AbstractBarometer(BaseI2CDriver):
+class BaseBarometer(BaseI2CDriver):
     """Interface for barometer drivers."""
+    __metaclass__ = ABCMeta
 
     osr_conversion = {}
 
     def __init__(self, address, oversampling_rate, port=1):
-        super(AbstractBarometer, self).__init__(address, port)
+        super(BaseBarometer, self).__init__(address, port)
         self.oversampling_rate = oversampling_rate
 
     @property
