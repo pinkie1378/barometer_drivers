@@ -47,7 +47,7 @@ class BaseMS5803(BaseBarometer):
         4096: {'command': partial(_adc_cmd, 0x50), 'msec': 9.04}
     }
 
-    def __init__(self, address, oversampling_rate=4096, port=1):
+    def __init__(self, address, oversampling_rate, port=1):
         assert address in [0x76, 0x77]
         super(MS5803_01BA, self).__init__(address, oversampling_rate, port)
         self.send_reset()
@@ -114,3 +114,41 @@ class BaseMS5803(BaseBarometer):
     @abstractmethod
     def _convert_raw_pressure(self, raw_pressure_uint):
         pass
+
+
+class MS5803_01BA(BaseMS5803):
+    """Concrete driver class for MS5803-01BA barometer."""
+    self.reference_temp = 2000  # 20.00 C
+
+    def __init__(self, address, oversampling_rate=4096, port=1):
+        super(MS5803_01BA, self).__init__(address, oversampling_rate, port=1)
+
+    def _convert_raw_temperature(self, raw_temp_uint):
+        self.d_t = raw_temp_uint - (self.t_ref * 2**8)
+        temp = int(self.reference_temp + (self.d_t * self.tempsens / 2**23))
+        return self._second_order_temp_conversion(temp)
+
+    def _second_order_temp_conversion(self, temp_estimate):
+        very_low = -1500  # -15.00 C
+        very_high = 4500  # 45.00 C
+        t2 = off2 = sens2 = 0
+        if temp_estimate >= self.reference_temp:
+            if temp_estimate > very_high:
+                sens2 -= int((temp_estimate - very_high)**2 / 2**3)
+        else:
+            t2 = int((self.d_t**2) / 2**31)
+            off2 = int(3 * (temp_estimate - self.reference_temp)**2)
+            sens2 = int(7 * (temp_estimate - self.reference_temp)**2 / 2**3)
+            if temp_estimate < very_low:
+                sens2 += 2 * (temp_estimate + 1500)**2
+        self.off2 = off2
+        self.sens2 = sens2
+        return (temp_estimate - t2) / 100.0
+
+    def _convert_raw_pressure(self, raw_pressure_uint):
+        off = int((self.off_t1 * 2**16) + (self.tco * self.d_t / 2**7))
+        off -= self.off2
+        sens = int((self.sens_t1 * 2**15) + (self.tcs * self.d_t / 2**8))
+        sens -= self.sens2
+        pressure = int(((raw_pressure_uint * sens / 2**21) - off) / 2**15)
+        return pressure / 1000.0
