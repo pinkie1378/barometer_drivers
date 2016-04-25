@@ -1,4 +1,3 @@
 smbus-cffi
-pytest
 tox
 enum34
