@@ -44,12 +44,12 @@ class BaseMS5803(BaseBarometer):
         512 : {'command': partial(_adc_cmd, 0x42), 'msec': 1.17},
         1024: {'command': partial(_adc_cmd, 0x44), 'msec': 2.28},
         2048: {'command': partial(_adc_cmd, 0x46), 'msec': 4.54},
-        4096: {'command': partial(_adc_cmd, 0x50), 'msec': 9.04}
+        4096: {'command': partial(_adc_cmd, 0x48), 'msec': 9.04}
     }
 
     def __init__(self, address, oversampling_rate, port=1):
         assert address in [0x76, 0x77]
-        super(MS5803_01BA, self).__init__(address, oversampling_rate, port)
+        super(BaseMS5803, self).__init__(address, oversampling_rate, port)
         self.send_reset()
 
     def send_reset(self):
@@ -57,6 +57,7 @@ class BaseMS5803(BaseBarometer):
         permanent read-only memory (PROM).
         """
         self.write_byte(self.reset)
+        time.sleep(0.1)
         self._read_prom()
 
     def _read_prom(self):
@@ -118,7 +119,7 @@ class BaseMS5803(BaseBarometer):
 
 class MS5803_01BA(BaseMS5803):
     """Concrete driver class for MS5803-01BA barometer."""
-    self.reference_temp = 2000  # 20.00 C
+    reference_temp = 2000  # 20.00 C
 
     def __init__(self, address, oversampling_rate=4096, port=1):
         super(MS5803_01BA, self).__init__(address, oversampling_rate, port=1)
@@ -151,4 +152,4 @@ class MS5803_01BA(BaseMS5803):
         sens = int((self.sens_t1 * 2**15) + (self.tcs * self.d_t / 2**8))
         sens -= self.sens2
         pressure = int(((raw_pressure_uint * sens / 2**21) - off) / 2**15)
-        return pressure / 1000.0
+        return pressure / 100.0
