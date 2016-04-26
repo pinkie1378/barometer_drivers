@@ -9,7 +9,7 @@ class BaseBarometer(BaseI2CDriver):
 
     osr_conversion = {}
 
-    def __init__(self, address, oversampling_rate, port=1):
+    def __init__(self, address, oversampling_rate, port):
         super(BaseBarometer, self).__init__(address, port)
         self.oversampling_rate = oversampling_rate
 

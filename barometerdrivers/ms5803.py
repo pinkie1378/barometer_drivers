@@ -122,7 +122,7 @@ class MS5803_01BA(BaseMS5803):
     reference_temp = 2000  # 20.00 C
 
     def __init__(self, address, oversampling_rate=4096, port=1):
-        super(MS5803_01BA, self).__init__(address, oversampling_rate, port=1)
+        super(MS5803_01BA, self).__init__(address, oversampling_rate, port)
 
     def _convert_raw_temperature(self, raw_temp_uint):
         self.d_t = raw_temp_uint - (self.t_ref * 2**8)

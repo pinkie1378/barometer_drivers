@@ -10,7 +10,7 @@ BITS_IN_BYTE = 8
 class BaseI2CDriver(object):
     """Base class for writing drivers for I2C sensors."""
 
-    def __init__(self, address, port=1):
+    def __init__(self, address, port):
         self.bus = smbus.SMBus(port)
         self.address = address
 
