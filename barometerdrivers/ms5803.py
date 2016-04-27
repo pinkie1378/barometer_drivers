@@ -110,11 +110,11 @@ class BaseMS5803(BaseBarometer):
 
     @abstractmethod
     def _convert_raw_temperature(self, raw_temp_uint):
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     def _convert_raw_pressure(self, raw_pressure_uint):
-        pass
+        pass  # pragma: no cover
 
 
 class MS5803_01BA(BaseMS5803):

@@ -27,16 +27,16 @@ class BaseBarometer(BaseI2CDriver):
 
     @abstractmethod
     def send_reset(self):
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     def read_temperature(self):
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     def read_pressure(self):
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     def read_temperature_and_pressure(self):
-        pass
+        pass  # pragma: no cover
