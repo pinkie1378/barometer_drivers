@@ -3,6 +3,7 @@ import six
 import smbus
 
 from barometerdrivers import MS5803_01BA
+from barometerdrivers.ms5803 import Reading
 
 if six.PY2:
     import mock
@@ -55,6 +56,20 @@ def ms5803_01ba(request):
 
     request.addfinalizer(teardown)
     return barometer
+
+
+@pytest.mark.parametrize('osr, expected_command', [
+    (256, {'pressure': 0x40, 'temperature': 0x50}),
+    (512, {'pressure': 0x42, 'temperature': 0x52}),
+    (1024, {'pressure': 0x44, 'temperature': 0x54}),
+    (2048, {'pressure': 0x46, 'temperature': 0x56}),
+    (4096, {'pressure': 0x48, 'temperature': 0x58})
+])
+def test_set_oversampling_rate(ms5803_01ba, osr, expected_command):
+    ms5803_01ba.oversampling_rate = osr
+    osr_command = ms5803_01ba.osr_conversion[osr]['command']
+    assert osr_command(Reading.PRESSURE) == expected_command['pressure']
+    assert osr_command(Reading.TEMPERATURE) == expected_command['temperature']
 
 
 @mock.patch.object(smbus.SMBus, 'write_byte')
