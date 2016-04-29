@@ -45,6 +45,8 @@ class HP206C(BaseBarometer):
 
     def __init__(self, oversampling_rate=4096, port=1):
         super(HP206C, self).__init__(0x76, oversampling_rate, port)
+        self.send_reset()
+        self.wait_until_ready(delay=0.1)
 
     def send_reset(self):
         """Send soft reset command. Once received and executed, all memory will
@@ -82,7 +84,6 @@ class HP206C(BaseBarometer):
         """
         time.sleep(delay)
         while not self.is_ready():
-            print('Not ready yet')
             time.sleep(poll_rate)
 
     def read_temperature(self):
