@@ -10,7 +10,7 @@ BITS_IN_BYTE = 8
 class BaseI2CDriver(object):
     """Base class for writing drivers for I2C sensors."""
 
-    def __init__(self, address, port=1):
+    def __init__(self, address, port):
         self.bus = smbus.SMBus(port)
         self.address = address
 
@@ -19,7 +19,7 @@ class BaseI2CDriver(object):
         :param int command: Byte to write to I2C device.
         :return int: Unsigned byte response from :attr:`command`.
         """
-        assert BaseI2CDriver.is_unsigned_byte(command)
+        BaseI2CDriver._check_is_unsigned_byte(command)
         return self.bus.read_byte_data(self.address, command)
 
     def read_block_data(self, command, length):
@@ -28,14 +28,14 @@ class BaseI2CDriver(object):
         :param length: Number of bytes to read from I2C device.
         :return list: :attr:`length` byte sized int elements from I2C device.
         """
-        assert BaseI2CDriver.is_unsigned_byte(command)
+        BaseI2CDriver._check_is_unsigned_byte(command)
         return self.bus.read_i2c_block_data(self.address, command, length)
 
     def write_byte(self, command):
         """
         :param int command: Byte to write to I2C device.
         """
-        assert BaseI2CDriver.is_unsigned_byte(command)
+        BaseI2CDriver._check_is_unsigned_byte(command)
         self.bus.write_byte(self.address, command)
 
     @staticmethod
@@ -55,17 +55,24 @@ class BaseI2CDriver(object):
         :param int byte: Value to test.
         :return bool: True if :attr:`byte` contains 8 bits and is non-negative.
         """
-        return 0x00 <= byte <= 0xff
+        return isinstance(byte, int) and 0x00 <= byte <= 0xff
+
+    @staticmethod
+    def _check_is_unsigned_byte(value):
+        if not BaseI2CDriver.is_unsigned_byte(value):
+            msg = "'{}' is not an unsigned byte.".format(value)
+            raise ValueError(msg)
 
     @staticmethod
     def is_bit_set(value, index):
-        """Check if a bit is set in positive integers.
-
-        :param int value: Value to test.
+        """
+        :param int value: Positive integer to test.
         :param int index: 0-based index of bit in :attr:`value` to check.
         :return bool: True if bit in :attr:`value` at :attr:`index` is set.
         """
-        assert isinstance(value, int) and value >= 0
+        if not isinstance(value, int) or value < 0:
+            msg_template = "Invalid parameter '{}'. Use positive integer."
+            raise ValueError(msg_template.format(value))
         mask = 1 << index
         bit = (value & mask) >> index
         return bit == 1
@@ -76,13 +83,28 @@ class BaseI2CDriver(object):
         :param list data_array: List of byte values.
         :return int: Unsigned integer value of :attr:`data_array`.
         """
-        assert not [i for i in data_array
-                    if not BaseI2CDriver.is_unsigned_byte(i)]
+        are_bytes = [BaseI2CDriver.is_unsigned_byte(i) for i in data_array]
+        if not all(are_bytes):
+            BaseI2CDriver._raise_not_bytes_value_error(data_array, are_bytes)
         value = 0
         for byte in data_array:
             value <<= BITS_IN_BYTE
             value |= byte
         return value
+
+    @staticmethod
+    def _raise_not_bytes_value_error(data, are_bytes):
+        not_bytes = [(datum, i)
+                     for i, (datum, is_byte) in enumerate(zip(data, are_bytes))
+                     if not is_byte]
+        if len(not_bytes) == 1:
+            msg_template = "Value '{}' at index '{}' is not an unsigned byte."
+            msg = msg_template.format(not_bytes[0][0], not_bytes[0][1])
+        else:
+            msg_template = 'Values {} at indeces {} are not unsigned bytes.'
+            msg = msg_template.format(repr([d for d, _ in not_bytes]),
+                                      repr([i for _, i in not_bytes]))
+        raise ValueError(msg)
 
     @staticmethod
     def array_block_to_int(data_array):

@@ -15,14 +15,14 @@ class AbstractSmoother(object):
         """
         :param float measurement: Latest measurement to add to smoothing model.
         """
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     def value(self):
         """
         :return float: Current true reading estimated by smoothing model.
         """
-        pass
+        pass  # pragma: no cover
 
 
 class AbstractRollingSmoother(AbstractSmoother):

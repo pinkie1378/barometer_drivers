@@ -29,6 +29,7 @@ class BaseMS5803(BaseBarometer):
     """Base class driver for reading temperature and pressure data from the
     MS5803 family of barometers.
     """
+    __metaclass__ = ABCMeta
     reset = 0x1e
     read_adc = 0x00
     prom_coefficients = {
@@ -48,7 +49,9 @@ class BaseMS5803(BaseBarometer):
     }
 
     def __init__(self, address, oversampling_rate, port=1):
-        assert address in [0x76, 0x77]
+        if address not in [0x76, 0x77]:
+            msg = "Invalid address '{}'. Valid addresses are 0x76 or 0x77."
+            raise ValueError(msg.format(hex(address)))
         super(BaseMS5803, self).__init__(address, oversampling_rate, port)
         self.send_reset()
 
@@ -110,11 +113,11 @@ class BaseMS5803(BaseBarometer):
 
     @abstractmethod
     def _convert_raw_temperature(self, raw_temp_uint):
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     def _convert_raw_pressure(self, raw_pressure_uint):
-        pass
+        pass  # pragma: no cover
 
 
 class MS5803_01BA(BaseMS5803):
@@ -122,7 +125,7 @@ class MS5803_01BA(BaseMS5803):
     reference_temp = 2000  # 20.00 C
 
     def __init__(self, address, oversampling_rate=4096, port=1):
-        super(MS5803_01BA, self).__init__(address, oversampling_rate, port=1)
+        super(MS5803_01BA, self).__init__(address, oversampling_rate, port)
 
     def _convert_raw_temperature(self, raw_temp_uint):
         self.d_t = raw_temp_uint - (self.t_ref * 2**8)

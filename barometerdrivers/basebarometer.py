@@ -9,7 +9,7 @@ class BaseBarometer(BaseI2CDriver):
 
     osr_conversion = {}
 
-    def __init__(self, address, oversampling_rate, port=1):
+    def __init__(self, address, oversampling_rate, port):
         super(BaseBarometer, self).__init__(address, port)
         self.oversampling_rate = oversampling_rate
 
@@ -20,23 +20,23 @@ class BaseBarometer(BaseI2CDriver):
     @oversampling_rate.setter
     def oversampling_rate(self, osr):
         valid_osrs = sorted(list(self.osr_conversion.keys()))
-        message = "'{}' is not a valid OSR value. Choose {}"
-        assert osr in valid_osrs, \
-            message.format(osr, ', '.join(map(str, valid_osrs)))
+        msg = "'{}' is not a valid OSR value. Choose {}."
+        if osr not in valid_osrs:
+            raise ValueError(msg.format(osr, ', '.join(map(str, valid_osrs))))
         self.__osr = osr
 
     @abstractmethod
     def send_reset(self):
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     def read_temperature(self):
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     def read_pressure(self):
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     def read_temperature_and_pressure(self):
-        pass
+        pass  # pragma: no cover

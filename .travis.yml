@@ -1,8 +1,14 @@
 language: python
+
+env:
+- TOXENV=py27-ci
+- TOXENV=py34-ci
+
 install:
   - pip install tox
+
 script:
   - tox
-env:
-  - TOXENV=py27
-  - TOXENV=py34
+
+after_success:
+  - coveralls
