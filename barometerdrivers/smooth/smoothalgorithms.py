@@ -79,16 +79,16 @@ class OneDKalman(AbstractSmoother):
     """Use for smoothing out noisy sensor outputs. Adapted from:
     http://interactive-matter.eu/blog/2009/12/18/filtering-sensor-data-with-a-kalman-filter/
     """
-    def __init__(self, q_process_noise,
-                 r_measure_noise,
+    def __init__(self, x_init_value,
                  p_estimation_error,
-                 x_init_value,
+                 q_process_noise,
+                 r_measure_noise,
                  decimal_places):
         super(OneDKalman, self).__init__(decimal_places)
-        self.q_process_noise = q_process_noise
-        self.r_measure_noise = r_measure_noise
-        self.p_estimation_error = p_estimation_error
-        self.x_value = x_init_value
+        self.x_value = float(x_init_value)
+        self.p_estimation_error = float(p_estimation_error)
+        self.q_process_noise = float(q_process_noise)
+        self.r_measure_noise = float(r_measure_noise)
 
     def update(self, measurement):
         # prediction update
