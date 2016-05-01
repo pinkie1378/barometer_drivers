@@ -11,12 +11,18 @@ else:
     import unittest.mock as mock
 
 
+def test_invalid_address():
+    with pytest.raises(ValueError) as e:
+        barometer = MS5803_01BA(0x01)
+    msg = e.value.args[0]
+    assert msg == "Invalid address '0x1'. Valid addresses are 0x76 or 0x77."
+
+
 address = 0x77
 
 
-@pytest.fixture(scope='module')
-def ms5803_01ba(request):
-    # mock smbus calls used in MS5803_01BA constructor
+def mock_ms5803(ms5803_class, pytest_request):
+    # mock smbus calls used in BaseMS5803 constructor
     open_patcher = mock.patch.object(smbus.SMBus, 'open')
     write_patcher = mock.patch.object(smbus.SMBus, 'write_byte')
     read_patcher = mock.patch.object(
@@ -36,15 +42,23 @@ def ms5803_01ba(request):
 
     # instantiate barometer driver
     port = 0
-    barometer = MS5803_01BA(address, port=port)
+    barometer = ms5803_class(address, port=port)
 
     # assert smbus is being called correctly
     open_mock.assert_called_once_with(port)
     write_mock.assert_called_once_with(address, MS5803_01BA.reset)
-    assert read_mock.call_count == 6
     prom_cmds = [0xa2 + i for i in range(0, 12, 2)]
-    for cmd in prom_cmds:
-        read_mock.assert_any_call(address, cmd, 2)
+    read_calls = [mock.call(address, cmd, 2) for cmd in prom_cmds]
+    read_mock.assert_has_calls(read_calls, any_order=True)
+    assert len(read_mock.call_args_list) == len(read_calls)
+
+    pytest_request.addfinalizer(teardown)
+    return barometer
+
+
+@pytest.fixture(scope='module')
+def ms5803_01ba(request):
+    barometer = mock_ms5803(MS5803_01BA, request)
 
     # populate coefficients with values from real sensor
     barometer.sens_t1 = 42345
@@ -53,9 +67,15 @@ def ms5803_01ba(request):
     barometer.tco = 25426
     barometer.t_ref = 33098
     barometer.tempsens = 28278
-
-    request.addfinalizer(teardown)
     return barometer
+
+
+def test_set_oversampling_rate_error(ms5803_01ba):
+    with pytest.raises(ValueError) as e:
+        ms5803_01ba.oversampling_rate = 555
+    msg = e.value.args[0]
+    assert msg.startswith("'555'")
+    assert msg.endswith('Choose 256, 512, 1024, 2048, 4096.')
 
 
 @pytest.mark.parametrize('osr, expected_command', [
@@ -73,8 +93,8 @@ def test_set_oversampling_rate(ms5803_01ba, osr, expected_command):
 
 
 @mock.patch.object(smbus.SMBus, 'write_byte')
-@mock.patch.object(
-    smbus.SMBus, 'read_i2c_block_data', side_effect=[[0x81, 0x4b, 0x0c]])
+@mock.patch.object(smbus.SMBus, 'read_i2c_block_data',
+                   side_effect=[[0x81, 0x4b, 0x0c]])
 def test_read_temperature_20C(read_mock, write_mock, ms5803_01ba):
     assert ms5803_01ba.read_temperature() == 20.0
     write_mock.assert_called_once_with(address, 0x58)
@@ -82,9 +102,8 @@ def test_read_temperature_20C(read_mock, write_mock, ms5803_01ba):
 
 
 @mock.patch.object(smbus.SMBus, 'write_byte')
-@mock.patch.object(
-    smbus.SMBus, 'read_i2c_block_data',
-    side_effect=[[0x81, 0x4b, 0x0c], [0x88, 0x05, 0xd2]])
+@mock.patch.object(smbus.SMBus, 'read_i2c_block_data',
+                   side_effect=[[0x81, 0x4b, 0x0c], [0x88, 0x05, 0xd2]])
 def test_read_temperature_and_pressure_20C_1000mbar(
         read_mock, write_mock, ms5803_01ba):
     assert ms5803_01ba.read_temperature_and_pressure() == (20.0, 1000.0)
@@ -94,9 +113,8 @@ def test_read_temperature_and_pressure_20C_1000mbar(
 
 
 @mock.patch.object(smbus.SMBus, 'write_byte')
-@mock.patch.object(
-    smbus.SMBus, 'read_i2c_block_data',
-    side_effect=[[0x81, 0x4b, 0x0c], [0x88, 0x05, 0xd2]])
+@mock.patch.object(smbus.SMBus, 'read_i2c_block_data',
+                   side_effect=[[0x81, 0x4b, 0x0c], [0x88, 0x05, 0xd2]])
 def test_read_pressure_1000mbar(read_mock, write_mock, ms5803_01ba):
     assert ms5803_01ba.read_pressure() == 1000.0
     assert write_mock.call_args_list == (
