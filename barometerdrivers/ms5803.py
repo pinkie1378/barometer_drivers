@@ -29,6 +29,7 @@ class BaseMS5803(BaseBarometer):
     """Base class driver for reading temperature and pressure data from the
     MS5803 family of barometers.
     """
+    __metaclass__ = ABCMeta
     reset = 0x1e
     read_adc = 0x00
     prom_coefficients = {
@@ -48,7 +49,9 @@ class BaseMS5803(BaseBarometer):
     }
 
     def __init__(self, address, oversampling_rate, port=1):
-        assert address in [0x76, 0x77]
+        if address not in [0x76, 0x77]:
+            msg = "Invalid address '{}'. Valid addresses are 0x76 or 0x77."
+            raise ValueError(msg.format(hex(address)))
         super(BaseMS5803, self).__init__(address, oversampling_rate, port)
         self.send_reset()
 
