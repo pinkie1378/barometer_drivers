@@ -6,13 +6,13 @@ import six
 from barometerdrivers.smooth import SmoothedMS5803_01BA
 
 if six.PY2:
-    import mock
+    from mock import patch
 else:
-    import unittest.mock as mock
+    from unittest.mock import patch
 
 
 @pytest.fixture
-@mock.patch('barometerdrivers.smooth.ms5803smoother.MS5803_01BA')
+@patch('barometerdrivers.smooth.ms5803smoother.MS5803_01BA')
 def mocked_smoothed_ms5803_01ba(driver_mock):
     smooth = SmoothedMS5803_01BA(0x77)
     driver_mock.assert_called_once_with(0x77, oversampling_rate=1024, port=1)
