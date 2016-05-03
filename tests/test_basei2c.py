@@ -5,9 +5,9 @@ import smbus
 from barometerdrivers.basei2c import BaseI2CDriver
 
 if six.PY2:
-    import mock
+    from mock import patch
 else:
-    import unittest.mock as mock
+    from unittest.mock import patch
 
 
 @pytest.mark.parametrize('byte_array, expected', [
@@ -93,28 +93,28 @@ address = 0x13
 
 
 @pytest.fixture(scope='module')
-def i2c_driver(request):
-    with mock.patch.object(smbus.SMBus, 'open') as open_mock:
-        port = 0
-        driver = BaseI2CDriver(address, port)
-        open_mock.assert_called_once_with(port)
+@patch.object(smbus.SMBus, 'open')
+def i2c_driver(open_mock):
+    port = 0
+    driver = BaseI2CDriver(address, port)
+    open_mock.assert_called_once_with(port)
     return driver
 
 
-@mock.patch.object(smbus.SMBus, 'write_byte')
+@patch.object(smbus.SMBus, 'write_byte')
 def test_write_byte(write_mock, i2c_driver):
     i2c_driver.write_byte(0x99)
     write_mock.assert_called_once_with(address, 0x99)
 
 
-@mock.patch.object(smbus.SMBus, 'read_byte_data', side_effect=[0x12])
+@patch.object(smbus.SMBus, 'read_byte_data', side_effect=[0x12])
 def test_read_byte_data(read_mock, i2c_driver):
     byte = i2c_driver.read_byte_data(0x99)
     read_mock.assert_called_once_with(address, 0x99)
     assert byte == 0x12
 
 
-@mock.patch.object(smbus.SMBus, 'read_i2c_block_data', side_effect=[[1, 2, 3]])
+@patch.object(smbus.SMBus, 'read_i2c_block_data', side_effect=[[1, 2, 3]])
 def test_read_block_data(read_mock, i2c_driver):
     byte_array = i2c_driver.read_block_data(0x99, 3)
     read_mock.assert_called_once_with(address, 0x99, 3)
