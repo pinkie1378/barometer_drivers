@@ -1,13 +1,12 @@
 import pytest
-import six
 import smbus
 
 from barometerdrivers.basei2c import BaseI2CDriver
 
-if six.PY2:
-    from mock import patch
-else:
+try:
     from unittest.mock import patch
+except ImportError:
+    from mock import patch
 
 
 @pytest.mark.parametrize('byte_array, expected', [

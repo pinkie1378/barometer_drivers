@@ -1,6 +1,21 @@
+# Python compiled sources
 *.pyc
-.tox
-.cache
-*.egg-info
-venv
-.coverage
+
+# Project files
+/venv/
+
+# Packaging
+/.cache/
+/.eggs/
+/build/
+/dist/
+/src/*.egg-info
+/wheelhouse/
+
+# Testing
+/.tox/
+
+# Python coverage
+/.coverage
+/coverage.xml
+/htmlcov/

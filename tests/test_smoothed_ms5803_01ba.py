@@ -1,14 +1,13 @@
 import time
 
 import pytest
-import six
 
 from barometerdrivers.smooth import SmoothedMS5803_01BA
 
-if six.PY2:
-    from mock import patch
-else:
+try:
     from unittest.mock import patch
+except ImportError:
+    from mock import patch
 
 
 @pytest.fixture
