@@ -1,13 +1,12 @@
 import pytest
-import six
 
 from barometerdrivers import HP206C
 from barometerdrivers.basei2c import BaseI2CDriver as I2C
 
-if six.PY2:
-    from mock import patch, call
-else:
+try:
     from unittest.mock import patch, call
+except ImportError:
+    from mock import patch, call
 
 
 @pytest.fixture(scope='module')

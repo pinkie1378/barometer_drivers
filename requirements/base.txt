@@ -1,3 +1,2 @@
 smbus-cffi
-tox
 enum34

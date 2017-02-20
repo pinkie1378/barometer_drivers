@@ -3,6 +3,7 @@ language: python
 env:
 - TOXENV=py27-ci
 - TOXENV=py34-ci
+- TOXENV=flake8
 
 install:
   - pip install tox

@@ -1,19 +1,18 @@
 import pytest
-import six
 
 from barometerdrivers import MS5803_01BA
 from barometerdrivers.basei2c import BaseI2CDriver as I2C
 from barometerdrivers.ms5803 import Reading
 
-if six.PY2:
-    from mock import patch, call
-else:
+try:
     from unittest.mock import patch, call
+except ImportError:
+    from mock import patch, call
 
 
 def test_invalid_address():
     with pytest.raises(ValueError) as e:
-        barometer = MS5803_01BA(0x01)
+        MS5803_01BA(0x01)
     msg = e.value.args[0]
     assert msg == "Invalid address '0x1'. Valid addresses are 0x76 or 0x77."
 
