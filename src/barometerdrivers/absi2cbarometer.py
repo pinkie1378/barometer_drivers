@@ -1,6 +1,9 @@
 from abc import ABCMeta, abstractmethod
+from collections import namedtuple
 
 from .i2creadwrite import I2CReadWrite
+
+OSRValue = namedtuple('OSRvalue', ['command', 'msec'])
 
 
 class AbsI2CBarometer(object):
