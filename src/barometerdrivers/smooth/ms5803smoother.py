@@ -1,6 +1,6 @@
 import time
 
-from barometerdrivers import MS5803_01BA
+from ..ms5803_01ba import MS5803_01BA
 from .smoothalgorithms import OneDKalman
 
 

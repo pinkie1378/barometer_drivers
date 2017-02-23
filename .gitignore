@@ -1,5 +1,6 @@
 # Python compiled sources
 *.pyc
+__pycache__/
 
 # Project files
 /venv/

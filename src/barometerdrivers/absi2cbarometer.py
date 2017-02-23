@@ -1,16 +1,19 @@
 from abc import ABCMeta, abstractmethod
+from collections import namedtuple
 
-from .basei2c import BaseI2CDriver
+from .i2creadwrite import I2CReadWrite
+
+OSRValue = namedtuple('OSRvalue', ['command', 'msec'])
 
 
-class BaseBarometer(BaseI2CDriver):
-    """Interface for barometer drivers."""
+class AbsI2CBarometer(object):
+    """Base class for I2C barometer drivers."""
     __metaclass__ = ABCMeta
 
     osr_conversion = {}
 
     def __init__(self, address, oversampling_rate, port):
-        super(BaseBarometer, self).__init__(address, port)
+        self.i2c = I2CReadWrite(address, port)
         self.oversampling_rate = oversampling_rate
 
     @property
@@ -19,7 +22,7 @@ class BaseBarometer(BaseI2CDriver):
 
     @oversampling_rate.setter
     def oversampling_rate(self, osr):
-        valid_osrs = sorted(list(self.osr_conversion.keys()))
+        valid_osrs = sorted(self.osr_conversion.keys())
         msg = "'{}' is not a valid OSR value. Choose {}."
         if osr not in valid_osrs:
             raise ValueError(msg.format(osr, ', '.join(map(str, valid_osrs))))
