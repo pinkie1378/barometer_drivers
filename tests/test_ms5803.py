@@ -1,49 +1,50 @@
 import pytest
 
 from barometerdrivers import MS5803_01BA
-from barometerdrivers.basei2c import BaseI2CDriver as I2C
-from barometerdrivers.ms5803 import Reading
 
 try:
-    from unittest.mock import patch, call
+    from unittest.mock import call
 except ImportError:
-    from mock import patch, call
+    from mock import call
 
 
-def test_invalid_address():
-    with pytest.raises(ValueError) as e:
-        MS5803_01BA(0x01)
-    msg = e.value.args[0]
-    assert msg == "Invalid address '0x1'. Valid addresses are 0x76 or 0x77."
+def read_prom_side_effect(cmd, _):
+    """Returns example values from datasheet."""
+    cmd_to_bytes = {
+        0xa2: [0x9c, 0xbf],  # sens_t1 = 40127
+        0xa4: [0x90, 0x3c],  # off_t1 = 36924
+        0xa6: [0x5b, 0x15],  # tcs = 23317
+        0xa8: [0x5a, 0xf2],  # tco = 23282
+        0xaa: [0x82, 0xb8],  # t_ref = 33464
+        0xac: [0x6e, 0x98]   # tempsens = 28312
+    }
+    return cmd_to_bytes[cmd]
 
 
-@patch.object(I2C, '__init__')
-@patch.object(I2C, 'write_byte')
-@patch.object(I2C, 'read_block_data', side_effect=lambda a, l: list(range(l)))
-def mock_ms5803(ms5803_class, read_mock, write_mock, init_mock):
-    barometer = ms5803_class(0x77, port=0)
+def test_ms5803_0b1a_init(i2c_mock_init, i2c_mock):
+    i2c_mock.read_block_data.side_effect = read_prom_side_effect
+    barometer = MS5803_01BA()
 
-    init_mock.assert_called_once_with(0x77, 0)
-    write_mock.assert_called_once_with(MS5803_01BA.reset)
+    i2c_mock_init.assert_called_once_with(0x77, 1)
+    i2c_mock.write_byte.assert_called_once_with(MS5803_01BA.reset)
     prom_cmds = [0xa2 + i for i in range(0, 12, 2)]
     read_calls = [call(cmd, 2) for cmd in prom_cmds]
-    read_mock.assert_has_calls(read_calls, any_order=True)
-    assert len(read_mock.call_args_list) == len(read_calls)
+    i2c_mock.read_block_data.assert_has_calls(read_calls, any_order=True)
+    assert len(i2c_mock.read_block_data.mock_calls) == len(read_calls)
+    assert barometer.sens_t1 == 40127
+    assert barometer.off_t1 == 36924
+    assert barometer.tcs == 23317
+    assert barometer.tco == 23282
+    assert barometer.t_ref == 33464
+    assert barometer.tempsens == 28312
 
-    return barometer
 
-
-@pytest.fixture(scope='module')
-def ms5803_01ba():
-    barometer = mock_ms5803(MS5803_01BA)
-
-    # populate coefficients with values from real sensor
-    barometer.sens_t1 = 42345
-    barometer.off_t1 = 39999
-    barometer.tcs = 24942
-    barometer.tco = 25426
-    barometer.t_ref = 33098
-    barometer.tempsens = 28278
+@pytest.fixture
+def ms5803_01ba(i2c_mock):
+    i2c_mock.read_block_data.side_effect = read_prom_side_effect
+    barometer = MS5803_01BA()
+    i2c_mock.write_byte.reset_mock()
+    i2c_mock.read_block_data.reset_mock()
     return barometer
 
 
@@ -55,54 +56,61 @@ def test_set_oversampling_rate_error(ms5803_01ba):
     assert msg.endswith('Choose 256, 512, 1024, 2048, 4096.')
 
 
-@pytest.mark.parametrize('osr, expected_command', [
-    (256, {'pressure': 0x40, 'temperature': 0x50}),
-    (512, {'pressure': 0x42, 'temperature': 0x52}),
-    (1024, {'pressure': 0x44, 'temperature': 0x54}),
-    (2048, {'pressure': 0x46, 'temperature': 0x56}),
-    (4096, {'pressure': 0x48, 'temperature': 0x58})
+@pytest.mark.parametrize('osr, pressure_cmd, temp_cmd', [
+    (256, 0x40, 0x50),
+    (512, 0x42, 0x52),
+    (1024, 0x44, 0x54),
+    (2048, 0x46, 0x56),
+    (4096, 0x48, 0x58)
 ])
-def test_set_oversampling_rate(ms5803_01ba, osr, expected_command):
+def test_set_oversampling_rate(ms5803_01ba, osr, pressure_cmd, temp_cmd):
     ms5803_01ba.oversampling_rate = osr
-    osr_command = ms5803_01ba.osr_conversion[osr]['command']
-    assert osr_command(Reading.PRESSURE) == expected_command['pressure']
-    assert osr_command(Reading.TEMPERATURE) == expected_command['temperature']
+    osr_command = ms5803_01ba.osr_conversion[osr].command
+    assert osr_command(is_pressure=True) == pressure_cmd
+    assert osr_command(is_pressure=False) == temp_cmd
 
 
-@patch.object(I2C, 'write_byte')
-@patch.object(I2C, 'read_block_data', side_effect=[[0x81, 0x4b, 0x0c]])
-def test_read_temperature_20C(read_mock, write_mock, ms5803_01ba):
-    assert ms5803_01ba.read_temperature() == 20.0
-    write_mock.assert_called_once_with(0x58)
-    read_mock.assert_called_once_with(0x00, 3)
-
-
-@patch.object(I2C, 'write_byte')
-@patch.object(I2C, 'read_block_data', side_effect=[[0x81, 0x4b, 0x0c],
-                                                   [0x88, 0x05, 0xd2]])
-def test_read_temp_pressure_20C_1000mbar(read_mock, write_mock, ms5803_01ba):
-    assert ms5803_01ba.read_temperature_and_pressure() == (20.0, 1000.0)
-    assert write_mock.call_args_list == [call(i) for i in [0x58, 0x48]]
-    assert read_mock.call_args_list == [call(0x00, 3)] * 2
-
-
-@patch.object(I2C, 'write_byte')
-@patch.object(I2C, 'read_block_data', side_effect=[[0x81, 0x4b, 0x0c],
-                                                   [0x88, 0x05, 0xd2]])
-def test_read_pressure_1000mbar(read_mock, write_mock, ms5803_01ba):
-    assert ms5803_01ba.read_pressure() == 1000.0
-    assert write_mock.call_args_list == [call(i) for i in [0x58, 0x48]]
-    assert read_mock.call_args_list == [call(0x00, 3)] * 2
-
-
-@pytest.mark.parametrize('temp_int, d_t, expected', [
-    (493, -446988, {'temp': 4.0, 'off2': 6813147, 'sens2': 1987167}),
-    (-1883, -1151988, {'temp': -25.0, 'off2': 45233067, 'sens2': 13486355}),
-    (5500, 1038412, {'temp': 55.0, 'off2': 0, 'sens2': -125000})
+@pytest.mark.parametrize('temp_bytes, expected_temp', [
+    ([0x82, 0xc1, 0x3e], 20.07),
+    ([0x90, 0x48, 0xb8], 50.0),
+    ([0x7a, 0x50, 0x80], 0.0),
+    ([0x6f, 0x76, 0x60], -30.0)
 ])
-def test_second_order_temp_conversion(ms5803_01ba, temp_int, d_t, expected):
-    ms5803_01ba.d_t = d_t
-    temp = ms5803_01ba._second_order_temp_conversion(temp_int)
-    assert temp == expected['temp']
-    assert ms5803_01ba.off2 == expected['off2']
-    assert ms5803_01ba.sens2 == expected['sens2']
+def test_read_temperature(i2c_mock, ms5803_01ba, temp_bytes, expected_temp):
+    i2c_mock.read_block_data.side_effect = [temp_bytes]
+
+    assert ms5803_01ba.read_temperature() == expected_temp
+    i2c_mock.write_byte.assert_called_once_with(
+        MS5803_01BA.osr_conversion[1024].command(is_pressure=False)
+    )
+    i2c_mock.read_block_data.assert_called_once_with(MS5803_01BA.read_adc, 3)
+
+
+def test_read_temp_pressure_20C_1000mbar(i2c_mock, ms5803_01ba):
+    i2c_mock.read_block_data.side_effect = [[0x82, 0xc1, 0x3e],
+                                            [0x8a, 0xa2, 0x1a]]
+
+    assert ms5803_01ba.read_temperature_and_pressure() == (20.07, 1000.09)
+    assert i2c_mock.write_byte.mock_calls == [
+        call(i)
+        for i in (MS5803_01BA.osr_conversion[1024].command(is_pressure=False),
+                  MS5803_01BA.osr_conversion[1024].command(is_pressure=True))
+    ]
+    assert i2c_mock.read_block_data.mock_calls == [
+        call(MS5803_01BA.read_adc, 3)
+    ] * 2
+
+
+def test_read_pressure_1000mbar(i2c_mock, ms5803_01ba):
+    i2c_mock.read_block_data.side_effect = [[0x82, 0xc1, 0x3e],
+                                            [0x8a, 0xa2, 0x1a]]
+
+    assert ms5803_01ba.read_pressure() == 1000.09
+    assert i2c_mock.write_byte.mock_calls == [
+        call(i)
+        for i in (MS5803_01BA.osr_conversion[1024].command(is_pressure=False),
+                  MS5803_01BA.osr_conversion[1024].command(is_pressure=True))
+    ]
+    assert i2c_mock.read_block_data.mock_calls == [
+        call(MS5803_01BA.read_adc, 3)
+    ] * 2
