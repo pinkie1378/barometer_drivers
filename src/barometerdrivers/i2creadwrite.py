@@ -1,6 +1,6 @@
 import smbus
 
-from .decorators import validate_unsigned_byte_command
+from .helpers.decorators import validate_unsigned_byte_command
 
 
 class I2CReadWrite(object):

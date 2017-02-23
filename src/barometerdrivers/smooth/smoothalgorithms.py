@@ -1,5 +1,5 @@
-from abc import ABCMeta, abstractmethod
 import math
+from abc import ABCMeta, abstractmethod
 
 
 class AbstractSmoother(object):

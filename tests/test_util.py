@@ -1,9 +1,10 @@
 import pytest
 
-from barometerdrivers.util import (array_block_to_signed_int,
-                                   array_block_to_unsigned_int, do_bitwise_or,
-                                   is_bit_set, is_unsigned_byte,
-                                   twos_compliment_to_signed_int)
+from barometerdrivers.helpers.util import (array_block_to_signed_int,
+                                           array_block_to_unsigned_int,
+                                           do_bitwise_or, is_bit_set,
+                                           is_unsigned_byte,
+                                           twos_compliment_to_signed_int)
 
 
 @pytest.mark.parametrize('val1, val2, args, expected', [

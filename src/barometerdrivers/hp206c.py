@@ -2,7 +2,7 @@ from functools import partial
 import time
 
 from .absi2cbarometer import AbsI2CBarometer, OSRValue
-from .util import array_block_to_signed_int, do_bitwise_or, is_bit_set
+from .helpers.util import array_block_to_signed_int, do_bitwise_or, is_bit_set
 
 
 class _HP206Ccommands(object):
