@@ -3,11 +3,12 @@ from collections import namedtuple
 
 from .i2creadwrite import I2CReadWrite
 
-OSRValue = namedtuple('OSRvalue', ['command', 'msec'])
+OSRValue = namedtuple("OSRvalue", ["command", "msec"])
 
 
 class AbsI2CBarometer(object):
     """Base class for I2C barometer drivers."""
+
     __metaclass__ = ABCMeta
 
     osr_conversion = {}
@@ -25,7 +26,7 @@ class AbsI2CBarometer(object):
         valid_osrs = sorted(self.osr_conversion.keys())
         msg = "'{}' is not a valid OSR value. Choose {}."
         if osr not in valid_osrs:
-            raise ValueError(msg.format(osr, ', '.join(map(str, valid_osrs))))
+            raise ValueError(msg.format(osr, ", ".join(map(str, valid_osrs))))
         self.__osr = osr
 
     @abstractmethod

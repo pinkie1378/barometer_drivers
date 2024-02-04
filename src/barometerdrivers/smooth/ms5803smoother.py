@@ -11,13 +11,14 @@ class SmoothedMS5803_01BA(object):
     Readings from 100 - 250 ms are processed with the Kalman filter, and the
     adjusted values are returned.
     """
+
     ignore_sec = 0.1
     poll_sec = 0.25
 
     def __init__(self, is_high_address, port=1):
-        self.ms5803 = MS5803_01BA(oversampling_rate=1024,
-                                  is_high_address=is_high_address,
-                                  port=port)
+        self.ms5803 = MS5803_01BA(
+            oversampling_rate=1024, is_high_address=is_high_address, port=port
+        )
 
     def _discard_first_100_msec(self, start):
         temperature = pressure = None

@@ -20,7 +20,7 @@ def is_unsigned_byte(byte):
     :param int byte: Value to test.
     :return bool: True if :attr:`byte` contains 8 bits and is non-negative.
     """
-    return isinstance(byte, int) and 0x00 <= byte <= 0xff
+    return isinstance(byte, int) and 0x00 <= byte <= 0xFF
 
 
 def is_bit_set(value, index):
@@ -53,16 +53,19 @@ def array_block_to_unsigned_int(data_array):
 
 
 def _raise_not_bytes_value_error(data, are_bytes):
-    not_bytes = [(datum, i)
-                 for i, (datum, is_byte) in enumerate(zip(data, are_bytes))
-                 if not is_byte]
+    not_bytes = [
+        (datum, i)
+        for i, (datum, is_byte) in enumerate(zip(data, are_bytes))
+        if not is_byte
+    ]
     if len(not_bytes) == 1:
         msg_template = "Value '{}' at index '{}' is not an unsigned byte."
         msg = msg_template.format(not_bytes[0][0], not_bytes[0][1])
     else:
-        msg_template = 'Values {} at indeces {} are not unsigned bytes.'
-        msg = msg_template.format(repr([d for d, _ in not_bytes]),
-                                  repr([i for _, i in not_bytes]))
+        msg_template = "Values {} at indeces {} are not unsigned bytes."
+        msg = msg_template.format(
+            repr([d for d, _ in not_bytes]), repr([i for _, i in not_bytes])
+        )
     raise ValueError(msg)
 
 
@@ -74,7 +77,7 @@ def twos_compliment_to_signed_int(twos_compliment_value, bits):
     :return int: Signed version of :attr:`twos_compliment_value`
     """
     if is_bit_set(twos_compliment_value, bits - 1):
-        twos_compliment_value -= (1 << bits)
+        twos_compliment_value -= 1 << bits
     return twos_compliment_value
 
 

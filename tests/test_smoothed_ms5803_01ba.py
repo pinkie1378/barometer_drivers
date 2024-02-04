@@ -12,7 +12,7 @@ except ImportError:
 
 @fixture
 def mock_ms5803_01ba_init():
-    mock = patch('barometerdrivers.smooth.ms5803smoother.MS5803_01BA')
+    mock = patch("barometerdrivers.smooth.ms5803smoother.MS5803_01BA")
     mock_session = mock.start()
     yield mock_session
     mock_session.stop()
@@ -20,9 +20,9 @@ def mock_ms5803_01ba_init():
 
 def test_smoothed_ms5803_01ba_init(mock_ms5803_01ba_init):
     SmoothedMS5803_01BA(True)
-    mock_ms5803_01ba_init.assert_called_once_with(oversampling_rate=1024,
-                                                  is_high_address=True,
-                                                  port=1)
+    mock_ms5803_01ba_init.assert_called_once_with(
+        oversampling_rate=1024, is_high_address=True, port=1
+    )
 
 
 @fixture

@@ -21,23 +21,24 @@ class AbsMS5803(AbsI2CBarometer):
     """Base class driver for reading temperature and pressure data \
     from the MS5803 family of barometers.
     """
+
     __metaclass__ = ABCMeta
-    reset = 0x1e
+    reset = 0x1E
     read_adc = 0x00
     prom_coefficients = {
-        'sens_t1' : 0xa2,  # pressure sensitivity
-        'off_t1'  : 0xa4,  # pressure offset
-        'tcs'     : 0xa6,  # temp. coefficient of pressure sensitivity
-        'tco'     : 0xa8,  # temp. coefficient of pressure offset
-        't_ref'   : 0xaa,  # reference temp.
-        'tempsens': 0xac   # temp. coefficient of the temp.
+        "sens_t1": 0xA2,  # pressure sensitivity
+        "off_t1": 0xA4,  # pressure offset
+        "tcs": 0xA6,  # temp. coefficient of pressure sensitivity
+        "tco": 0xA8,  # temp. coefficient of pressure offset
+        "t_ref": 0xAA,  # reference temp.
+        "tempsens": 0xAC,  # temp. coefficient of the temp.
     }
     osr_conversion = {
-        256 : OSRValue(partial(_adc_cmd, 0x40), 0.6),
-        512 : OSRValue(partial(_adc_cmd, 0x42), 1.17),
+        256: OSRValue(partial(_adc_cmd, 0x40), 0.6),
+        512: OSRValue(partial(_adc_cmd, 0x42), 1.17),
         1024: OSRValue(partial(_adc_cmd, 0x44), 2.28),
         2048: OSRValue(partial(_adc_cmd, 0x46), 4.54),
-        4096: OSRValue(partial(_adc_cmd, 0x48), 9.04)
+        4096: OSRValue(partial(_adc_cmd, 0x48), 9.04),
     }
 
     def __init__(self, oversampling_rate, is_high_address, port):

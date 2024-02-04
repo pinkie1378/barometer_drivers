@@ -7,6 +7,7 @@ from .helpers.util import array_block_to_signed_int, do_bitwise_or, is_bit_set
 
 class _HP206Ccommands(object):
     """Command bits for HP206C barometer."""
+
     soft_reset = 0x06
     adc_pressure_temp = partial(do_bitwise_or, 0x40, 0x00)
     adc_temp = partial(do_bitwise_or, 0x40, 0x02)
@@ -17,23 +18,24 @@ class _HP206Ccommands(object):
     read_temp = 0x32
     analog_calibrate = 0x28
     read_register = partial(do_bitwise_or, 0x80)
-    write_register = partial(do_bitwise_or, 0xc0)
+    write_register = partial(do_bitwise_or, 0xC0)
 
 
 class _HP206Cregisters(object):
     """Register bits for HP206C barometer."""
+
     altitude_offset = (0x00, 0x01)
     high_pressure_threshold = (0x02, 0x03)
     mid_pressure_threshold = (0x04, 0x05)
     low_pressure_threshold = (0x06, 0x07)
     high_temp_threshold = 0x08
     mid_temp_threshold = 0x09
-    low_temp_threshold = 0x0a
-    interrupt_enable = 0x0b
-    interrupt_configure = 0x0c
-    interrupt_status = 0x0d
-    interrupt_events = 0x0e
-    compensation = 0x0f
+    low_temp_threshold = 0x0A
+    interrupt_enable = 0x0B
+    interrupt_configure = 0x0C
+    interrupt_status = 0x0D
+    interrupt_events = 0x0E
+    compensation = 0x0F
 
 
 class HP206C(AbsI2CBarometer):
@@ -42,12 +44,12 @@ class HP206C(AbsI2CBarometer):
     commands = _HP206Ccommands()
     registers = _HP206Cregisters()
     osr_conversion = {
-        128 : OSRValue(0x14, 2.1),
-        256 : OSRValue(0x10, 4.1),
-        512 : OSRValue(0x0c, 8.2),
+        128: OSRValue(0x14, 2.1),
+        256: OSRValue(0x10, 4.1),
+        512: OSRValue(0x0C, 8.2),
         1024: OSRValue(0x08, 16.4),
         2048: OSRValue(0x04, 32.8),
-        4096: OSRValue(0x00, 65.6)
+        4096: OSRValue(0x00, 65.6),
     }
 
     def __init__(self, oversampling_rate=4096, port=1):

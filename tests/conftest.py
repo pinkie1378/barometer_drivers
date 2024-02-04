@@ -8,7 +8,7 @@ except ImportError:
 
 @fixture
 def i2c_mock_init():
-    mock = patch('barometerdrivers.absi2cbarometer.I2CReadWrite')
+    mock = patch("barometerdrivers.absi2cbarometer.I2CReadWrite")
     mock_session = mock.start()
     yield mock_session
     mock_session.stop()
