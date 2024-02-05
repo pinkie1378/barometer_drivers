@@ -1,11 +1,8 @@
+from unittest.mock import call
+
 import pytest
 
 from barometerdrivers import MS5803_01BA
-
-try:
-    from unittest.mock import call
-except ImportError:
-    from mock import call
 
 
 def read_prom_side_effect(cmd, _):

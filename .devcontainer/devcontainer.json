@@ -7,28 +7,46 @@
 
     // Features to add to the dev container. More info: https://containers.dev/features.
     "features": {
-        "ghcr.io/devcontainers-contrib/features/hatch:2": {}
+        "ghcr.io/devcontainers-contrib/features/hatch:2": {
+            "version": "latest"
+        },
+        "ghcr.io/devcontainers-contrib/features/flake8:2": {
+            "version": "latest",
+            "plugins": "flake8-black flake8-isort flake8-print flake8-bandit flake8-pylint flake8-builtins flake8-spellcheck flake8-pytest-style flake8-django flake8-fastapi"
+        },
+        "ghcr.io/devcontainers-contrib/features/black:2": {
+            "version": "latest"
+        },
+        "ghcr.io/devcontainers-contrib/features/isort:2": {
+            "version": "latest"
+        }
     },
 
     // Use 'forwardPorts' to make a list of ports inside the container available locally.
     // "forwardPorts": [],
 
     // Use 'postCreateCommand' to run commands after the container is created.
-    "postCreateCommand": "pip3 install --user -r requirements/develop.txt",
+    "postCreateCommand": "pip3 install --user . pytest",
 
     // Configure tool-specific properties.
     "customizations": {
         "vscode": {
             "extensions": [
                 "ms-python.python",
+                "ms-python.black-formatter",
+                "ms-python.flake8",
+                "ms-python.isort",
                 "visualstudioexptteam.vscodeintellicode",
                 "kevinrose.vsc-python-indent",
-                "njpwerner.autodocstring"
+                "njpwerner.autodocstring",
+                "tamasfe.even-better-toml"
             ],
             "settings": {
                 "editor.renderWhitespace": "all",
                 "python.testing.unittestEnabled": false,
-                "python.testing.pytestEnabled": true
+                "python.testing.pytestEnabled": true,
+                "editor.defaultFormatter": "ms-python.black-formatter",
+                "editor.formatOnSave": true
             }
         }
     }

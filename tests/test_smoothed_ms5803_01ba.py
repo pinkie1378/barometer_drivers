@@ -1,13 +1,9 @@
 import time
+from unittest.mock import patch
 
 from pytest import fixture
 
 from barometerdrivers.smooth import SmoothedMS5803_01BA
-
-try:
-    from unittest.mock import patch
-except ImportError:
-    from mock import patch
 
 
 @fixture

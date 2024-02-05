@@ -1,11 +1,8 @@
+from unittest.mock import call
+
 import pytest
 
 from barometerdrivers import HP206C
-
-try:
-    from unittest.mock import call
-except ImportError:
-    from mock import call
 
 READY = 0x40
 NOT_READY = 0

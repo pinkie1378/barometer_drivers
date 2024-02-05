@@ -1,4 +1,4 @@
-import smbus
+import smbus2
 
 from .helpers.decorators import validate_unsigned_byte_command
 
@@ -7,7 +7,7 @@ class I2CReadWrite(object):
     """Communicate with sensors on I2C bus."""
 
     def __init__(self, address, port):
-        self.bus = smbus.SMBus(port)
+        self.bus = smbus2.SMBus(port)
         self.address = address
 
     @validate_unsigned_byte_command

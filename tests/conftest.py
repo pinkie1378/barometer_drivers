@@ -1,9 +1,6 @@
-from pytest import fixture
+from unittest.mock import patch
 
-try:
-    from unittest.mock import patch
-except ImportError:
-    from mock import patch
+from pytest import fixture
 
 
 @fixture
